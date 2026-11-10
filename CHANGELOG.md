@@ -5,6 +5,8 @@ All notable changes to this project are documented here.
 ## [Unreleased]
 
 ### Added
+- Support request create/list/detail/status APIs with request lifecycle transitions.
+- Bulk record target selection for owner-change and delete requests, including duplicate-target validation.
 - NestJS Sidekick service foundation with health/readiness endpoints and validated configuration.
 - Initial ticket endpoints for creation, listing, details, and support-controlled status transitions.
 - PostgreSQL Prisma schema for tickets, ticket events/comments, support requests, and per-record request targets.
