@@ -7,6 +7,7 @@ const csv = (fallback: string) =>
 
 export const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+  DATABASE_URL: z.string().url(),
   PORT: z.coerce.number().int().min(1).max(65535).default(3000),
   SERVICE_NAME: z.string().min(1).default('sidekick-service'),
   API_PREFIX: z.string().regex(/^[a-zA-Z0-9/_-]+$/).default('api/v1'),

@@ -4,7 +4,7 @@ Standalone NestJS backend for the Sidekick support assistant used with CRM and E
 
 ## Current status
 
-**Phase 1 — backend foundation** is scaffolded: NestJS application, validated environment configuration, secure HTTP defaults, versioned API prefix, and live/readiness endpoints. Business endpoints are not implemented yet.
+**Backend foundation and ticket persistence are underway.** NestJS configuration, health endpoints, ticket CRUD reads/creation/status transitions, and a PostgreSQL Prisma schema are present. Request lifecycle, verified identity integration, city/store authorization, RAG, service connectors, and call routing are still pending.
 
 ```text
 GET /api/v1/health/live
@@ -18,10 +18,12 @@ Requirements: Node.js 24 and npm.
 ```bash
 cp .env.example .env
 npm install
+npx prisma generate
+npx prisma migrate dev --name initial
 npm run start:dev
 ```
 
-The service listens on port 3000 by default. CORS origins are configured in `.env` for the CRM and ERP frontend origins.
+The service requires a reachable PostgreSQL database configured with `DATABASE_URL` in `.env`. It listens on port 3000 by default. CORS origins are configured for CRM and ERP frontend origins.
 
 ## Product boundaries
 
@@ -43,6 +45,18 @@ The service listens on port 3000 by default. CORS origins are configured in `.en
 7. **Calls and routing:** support-team administration, primary/secondary routing, availability and holiday calendars, callbacks, screen sharing, transfer and call history.
 8. **Frontend integrations:** separate Ticket Dashboard UI and CRM/ERP Sidekick widget in their respective repositories; consume this service's versioned API. CRM/ERP frontend code is deliberately not included here.
 9. **Hardening and rollout:** security review, operational metrics, integration tests, load/recovery checks and phased production rollout.
+
+## API foundation
+
+- `GET /api/v1/health/live`
+- `GET /api/v1/health/ready`
+- `GET /api/v1/skills`
+- `POST /api/v1/tickets`
+- `GET /api/v1/tickets`
+- `GET /api/v1/tickets/:id`
+- `PATCH /api/v1/tickets/:id/status`
+
+Identity headers are currently a development placeholder; do not expose this service publicly until verified Identity Management authentication and authorization guards are implemented.
 
 ## Local Git
 

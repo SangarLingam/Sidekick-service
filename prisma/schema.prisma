@@ -1,0 +1,104 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum TicketStatus {
+  NEW
+  TRIAGED
+  IN_PROGRESS
+  WAITING_FOR_USER
+  RESOLVED
+  CLOSED
+}
+
+enum RequestStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  AWAITING_APPROVAL
+  APPROVED
+  REJECTED
+  IN_PROGRESS
+  COMPLETED
+  PARTIALLY_COMPLETED
+  FAILED
+  CANCELLED
+}
+
+model Ticket {
+  id             String        @id @default(cuid())
+  tenantId       String
+  requesterId    String
+  type           String
+  title          String
+  description    String        @db.Text
+  service        String
+  module         String?
+  recordId       String?
+  status         TicketStatus  @default(NEW)
+  assignedTeam   String?
+  assignedUserId String?
+  attachmentIds  String[]      @default([])
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  history        TicketEvent[]
+  comments       TicketComment[]
+  @@index([tenantId, requesterId, status])
+  @@index([tenantId, service, status])
+}
+
+model TicketEvent {
+  id         String       @id @default(cuid())
+  ticketId   String
+  ticket     Ticket       @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  status     TicketStatus
+  actorId    String
+  publicNote String?      @db.Text
+  createdAt  DateTime     @default(now())
+  @@index([ticketId, createdAt])
+}
+
+model TicketComment {
+  id         String   @id @default(cuid())
+  ticketId   String
+  ticket     Ticket   @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  authorId   String
+  body       String   @db.Text
+  visibility String   @default("PUBLIC")
+  createdAt  DateTime @default(now())
+  @@index([ticketId, createdAt])
+}
+
+model SupportRequest {
+  id             String        @id @default(cuid())
+  tenantId       String
+  requesterId    String
+  type           String
+  title          String
+  description    String        @db.Text
+  service        String
+  module         String?
+  status         RequestStatus @default(SUBMITTED)
+  reason         String?       @db.Text
+  proposedOwner  String?
+  targets        RequestTarget[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  @@index([tenantId, requesterId, status])
+}
+
+model RequestTarget {
+  id             String         @id @default(cuid())
+  requestId      String
+  request        SupportRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  service        String
+  entityType     String
+  recordId       String
+  outcome        String         @default("PENDING")
+  outcomeMessage String?        @db.Text
+  @@unique([requestId, service, entityType, recordId])
+}
