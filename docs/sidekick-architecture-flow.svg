@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1500" height="1080" viewBox="0 0 1500 1080" role="img" aria-labelledby="title desc">
+<title id="title">Sidekick service architecture and support flow</title>
+<desc id="desc">Architecture overview of CRM and ERP connected to the Sidekick NestJS service and supporting microservices, followed by a user support flow covering authorization, knowledge retrieval, clarification, live APIs, tickets, requests and support calls.</desc>
+<defs>
+ <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto"><path d="M0,0 L0,6 L9,3 z" fill="#61758a"/></marker>
+ <style>
+  text{font-family:Inter,Arial,sans-serif;fill:#14283e}.title{font-size:30px;font-weight:700}.subtitle{font-size:16px;fill:#53677b}.head{font-size:19px;font-weight:700}.label{font-size:15px;font-weight:600}.small{font-size:13px;fill:#40566b}.panel{fill:#f7f9fc;stroke:#d4dee8;stroke-width:2}.app{fill:#e6f2ff;stroke:#78aee4;stroke-width:2}.core{fill:#153b63;stroke:#0e2c4b;stroke-width:2}.coreText{fill:#fff}.svc{fill:#fff;stroke:#aebdcb;stroke-width:2}.ai{fill:#fff4d9;stroke:#e5bb5e;stroke-width:2}.work{fill:#e7f7ee;stroke:#76bb8e;stroke-width:2}.arrow{stroke:#61758a;stroke-width:3;fill:none;marker-end:url(#arrow)}
+ </style>
+</defs>
+<rect width="1500" height="1080" fill="#fff"/>
+<text x="60" y="52" class="title">Sidekick — Architecture and user support flow</text>
+<text x="60" y="80" class="subtitle">NestJS support backend across CRM and ERP | business data and permissions remain owned by existing services</text>
+
+<rect x="45" y="110" width="1410" height="410" rx="18" class="panel"/>
+<text x="75" y="150" class="head">A. Logical architecture</text>
+<rect x="85" y="205" width="250" height="92" rx="14" class="app"/>
+<text x="210" y="242" text-anchor="middle" class="label">CRM / ERP applications</text><text x="210" y="270" text-anchor="middle" class="small">Sidekick widget + Ticket Dashboard</text>
+<rect x="435" y="185" width="350" height="135" rx="18" class="core"/>
+<text x="610" y="222" text-anchor="middle" class="head coreText">Sidekick NestJS service</text>
+<text x="610" y="252" text-anchor="middle" class="small coreText">API • authorization • orchestration</text>
+<text x="610" y="278" text-anchor="middle" class="small coreText">tickets • requests • routing • audit</text>
+<rect x="900" y="170" width="225" height="86" rx="14" class="ai"/>
+<text x="1012" y="205" text-anchor="middle" class="label">RAG + agent tools</text><text x="1012" y="230" text-anchor="middle" class="small">approved docs + allow-listed APIs</text>
+<rect x="1190" y="170" width="215" height="86" rx="14" class="svc"/>
+<text x="1297" y="205" text-anchor="middle" class="label">Markdown knowledge</text><text x="1297" y="230" text-anchor="middle" class="small">service docs, versions, scopes</text>
+<rect x="900" y="325" width="225" height="100" rx="14" class="work"/>
+<text x="1012" y="362" text-anchor="middle" class="label">Sidekick data store</text><text x="1012" y="387" text-anchor="middle" class="small">support records + metadata</text><text x="1012" y="407" text-anchor="middle" class="small">PostgreSQL via Prisma</text>
+<rect x="1190" y="300" width="215" height="145" rx="14" class="svc"/>
+<text x="1297" y="330" text-anchor="middle" class="label">Existing microservices</text>
+<text x="1297" y="356" text-anchor="middle" class="small">Identity • CRM • ERP</text><text x="1297" y="379" text-anchor="middle" class="small">Quote • Payments</text><text x="1297" y="402" text-anchor="middle" class="small">Files • Notifications</text><text x="1297" y="425" text-anchor="middle" class="small">Scheduler • Quote Builder</text>
+<rect x="435" y="380" width="350" height="75" rx="14" class="svc"/>
+<text x="610" y="411" text-anchor="middle" class="label">Calling / collaboration integrations</text><text x="610" y="438" text-anchor="middle" class="small">WebRTC media • screen share • callbacks</text>
+<path d="M335 250 L435 250" class="arrow"/><text x="385" y="236" text-anchor="middle" class="small">context + API</text>
+<path d="M785 220 L900 212" class="arrow"/><path d="M1125 212 L1190 212" class="arrow"/>
+<path d="M785 260 C850 260 850 363 900 363" class="arrow"/>
+<path d="M1125 370 L1190 370" class="arrow"/>
+<path d="M610 320 L610 380" class="arrow"/>
+<text x="75" y="488" class="small">Access is checked before retrieval and every service action. Sidekick uses service APIs; it does not connect to business-service databases.</text>
+
+<rect x="45" y="550" width="1410" height="480" rx="18" class="panel"/>
+<text x="75" y="590" class="head">B. User support flow</text>
+<rect x="85" y="635" width="240" height="84" rx="14" class="app"/>
+<text x="205" y="669" text-anchor="middle" class="label">User asks / reports</text><text x="205" y="694" text-anchor="middle" class="small">question • bug • request • call</text>
+<rect x="405" y="635" width="250" height="84" rx="14" class="svc"/>
+<text x="530" y="669" text-anchor="middle" class="label">Authenticate + scope</text><text x="530" y="694" text-anchor="middle" class="small">role • permission • city • store</text>
+<rect x="735" y="635" width="250" height="84" rx="14" class="ai"/>
+<text x="860" y="669" text-anchor="middle" class="label">Classify + gather context</text><text x="860" y="694" text-anchor="middle" class="small">clarify missing details</text>
+<rect x="1070" y="635" width="300" height="84" rx="14" class="ai"/>
+<text x="1220" y="669" text-anchor="middle" class="label">Retrieve permitted sources</text><text x="1220" y="694" text-anchor="middle" class="small">Markdown RAG or authorised live API</text>
+<path d="M325 677 L405 677" class="arrow"/><path d="M655 677 L735 677" class="arrow"/><path d="M985 677 L1070 677" class="arrow"/>
+
+<rect x="85" y="825" width="280" height="100" rx="14" class="work"/>
+<text x="225" y="861" text-anchor="middle" class="label">Answer + citation</text><text x="225" y="888" text-anchor="middle" class="small">visible source / live-data result</text>
+<rect x="425" y="825" width="280" height="100" rx="14" class="work"/>
+<text x="565" y="861" text-anchor="middle" class="label">Ticket or request</text><text x="565" y="888" text-anchor="middle" class="small">approval + per-record outcomes</text>
+<rect x="765" y="825" width="280" height="100" rx="14" class="work"/>
+<text x="905" y="861" text-anchor="middle" class="label">Support call</text><text x="905" y="888" text-anchor="middle" class="small">primary → fallback → callback</text>
+<rect x="1105" y="825" width="280" height="100" rx="14" class="work"/>
+<text x="1245" y="861" text-anchor="middle" class="label">Track status + history</text><text x="1245" y="888" text-anchor="middle" class="small">dashboard + notifications</text>
+<path d="M1220 719 C1220 770 225 770 225 825" class="arrow"/>
+<path d="M1220 719 C1220 770 565 770 565 825" class="arrow"/>
+<path d="M1220 719 C1220 770 905 770 905 825" class="arrow"/>
+<path d="M705 875 L1105 875" class="arrow"/><path d="M1045 875 L1105 875" class="arrow"/>
+<text x="85" y="973" class="small">Uncertain or unresolved? State the gap and offer escalation. Never claim a write succeeded until the owning service confirms it.</text>
+</svg>
