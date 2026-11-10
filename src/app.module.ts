@@ -5,6 +5,7 @@ import { envSchema } from './config/env.schema';
 import { HealthModule } from './health/health.module';
 import { TicketsModule } from './tickets/tickets.module';
 import { SkillsModule } from './skills/skills.module';
+import { DatabaseModule } from './database/database.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { SkillsModule } from './skills/skills.module';
       validate: (raw) => envSchema.parse(raw),
       load: [() => configuration(envSchema.parse(process.env))],
     }),
+    DatabaseModule,
     HealthModule,
     TicketsModule,
     SkillsModule,
