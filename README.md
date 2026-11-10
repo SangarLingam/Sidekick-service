@@ -55,6 +55,10 @@ The service requires a reachable PostgreSQL database configured with `DATABASE_U
 - `GET /api/v1/tickets`
 - `GET /api/v1/tickets/:id`
 - `PATCH /api/v1/tickets/:id/status`
+- `POST /api/v1/requests`
+- `GET /api/v1/requests`
+- `GET /api/v1/requests/:id`
+- `PATCH /api/v1/requests/:id/status`
 
 Identity headers are currently a development placeholder; do not expose this service publicly until verified Identity Management authentication and authorization guards are implemented.
 
