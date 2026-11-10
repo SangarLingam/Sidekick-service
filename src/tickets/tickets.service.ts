@@ -1,40 +1,76 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
-import { randomUUID } from 'node:crypto';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { TicketStatus } from '@prisma/client';
 import { RequestIdentity } from '../common/requester.decorator';
+import { PrismaService } from '../database/prisma.service';
 import { CreateTicketDto } from './dto/create-ticket.dto';
-import { Ticket, TicketStatus } from './ticket.model';
+
+const supportRoles = ['support_admin', 'support_agent', 'platform_admin'];
 
 @Injectable()
 export class TicketsService {
-  private readonly tickets = new Map<string, Ticket>();
-  create(dto: CreateTicketDto, identity: RequestIdentity): Ticket {
-    const now = new Date().toISOString();
-    const ticket: Ticket = { ...dto, id: `TKT-${randomUUID()}`, tenantId: identity.tenantId,
-      requesterId: identity.userId, status: TicketStatus.NEW, attachmentIds: dto.attachmentIds ?? [],
-      createdAt: now, updatedAt: now, history: [{ status: TicketStatus.NEW, by: identity.userId, at: now }] };
-    this.tickets.set(ticket.id, ticket); return ticket;
+  constructor(private readonly prisma: PrismaService) {}
+
+  async create(dto: CreateTicketDto, identity: RequestIdentity) {
+    return this.prisma.ticket.create({
+      data: {
+        tenantId: identity.tenantId,
+        requesterId: identity.userId,
+        type: dto.type,
+        title: dto.title,
+        description: dto.description,
+        service: dto.service,
+        module: dto.module,
+        recordId: dto.recordId,
+        attachmentIds: dto.attachmentIds ?? [],
+        history: { create: { status: TicketStatus.NEW, actorId: identity.userId } },
+      },
+      include: { history: { orderBy: { createdAt: 'asc' } } },
+    });
   }
-  list(identity: RequestIdentity): Ticket[] {
-    return [...this.tickets.values()].filter(t => t.tenantId === identity.tenantId &&
-      (t.requesterId === identity.userId || identity.roles.some(r => ['support_admin','support_agent','platform_admin'].includes(r))));
+
+  async list(identity: RequestIdentity) {
+    const support = identity.roles.some((role) => supportRoles.includes(role));
+    return this.prisma.ticket.findMany({
+      where: { tenantId: identity.tenantId, ...(support ? {} : { requesterId: identity.userId }) },
+      include: { history: { orderBy: { createdAt: 'asc' } } },
+      orderBy: { updatedAt: 'desc' },
+    });
   }
-  get(id: string, identity: RequestIdentity): Ticket {
-    const ticket = this.tickets.get(id);
-    if (!ticket || ticket.tenantId !== identity.tenantId) throw new NotFoundException('Ticket not found');
-    if (ticket.requesterId !== identity.userId && !identity.roles.some(r => ['support_admin','support_agent','platform_admin'].includes(r))) throw new ForbiddenException();
+
+  async get(id: string, identity: RequestIdentity) {
+    const ticket = await this.prisma.ticket.findFirst({
+      where: { id, tenantId: identity.tenantId },
+      include: { history: { orderBy: { createdAt: 'asc' } }, comments: { orderBy: { createdAt: 'asc' } } },
+    });
+    if (!ticket) throw new NotFoundException('Ticket not found');
+    if (ticket.requesterId !== identity.userId && !identity.roles.some((role) => supportRoles.includes(role))) {
+      throw new ForbiddenException();
+    }
     return ticket;
   }
-  transition(id: string, status: TicketStatus, identity: RequestIdentity, publicNote?: string): Ticket {
-    const ticket = this.get(id, identity);
-    if (!identity.roles.some(r => ['support_admin','support_agent','platform_admin'].includes(r))) throw new ForbiddenException('Support role required');
+
+  async transition(id: string, status: TicketStatus, identity: RequestIdentity, publicNote?: string) {
+    const ticket = await this.get(id, identity);
+    if (!identity.roles.some((role) => supportRoles.includes(role))) {
+      throw new ForbiddenException('Support role required');
+    }
     const allowed: Record<TicketStatus, TicketStatus[]> = {
-      [TicketStatus.NEW]: [TicketStatus.TRIAGED], [TicketStatus.TRIAGED]: [TicketStatus.IN_PROGRESS, TicketStatus.WAITING_FOR_USER],
-      [TicketStatus.IN_PROGRESS]: [TicketStatus.WAITING_FOR_USER, TicketStatus.RESOLVED],
-      [TicketStatus.WAITING_FOR_USER]: [TicketStatus.IN_PROGRESS, TicketStatus.RESOLVED],
-      [TicketStatus.RESOLVED]: [TicketStatus.CLOSED, TicketStatus.IN_PROGRESS], [TicketStatus.CLOSED]: [TicketStatus.IN_PROGRESS],
+      NEW: ['TRIAGED'],
+      TRIAGED: ['IN_PROGRESS', 'WAITING_FOR_USER'],
+      IN_PROGRESS: ['WAITING_FOR_USER', 'RESOLVED'],
+      WAITING_FOR_USER: ['IN_PROGRESS', 'RESOLVED'],
+      RESOLVED: ['CLOSED', 'IN_PROGRESS'],
+      CLOSED: ['IN_PROGRESS'],
     };
-    if (!allowed[ticket.status].includes(status)) throw new ForbiddenException(`Invalid transition ${ticket.status} -> ${status}`);
-    const now = new Date().toISOString(); ticket.status = status; ticket.updatedAt = now;
-    ticket.history.push({ status, by: identity.userId, at: now, publicNote }); return ticket;
+    if (!allowed[ticket.status].includes(status)) {
+      throw new ForbiddenException(`Invalid transition ${ticket.status} -> ${status}`);
+    }
+    return this.prisma.$transaction(async (tx) => {
+      await tx.ticket.update({ where: { id }, data: { status } });
+      await tx.ticketEvent.create({ data: { ticketId: id, status, actorId: identity.userId, publicNote } });
+      return tx.ticket.findUniqueOrThrow({
+        where: { id }, include: { history: { orderBy: { createdAt: 'asc' } } },
+      });
+    });
   }
 }
