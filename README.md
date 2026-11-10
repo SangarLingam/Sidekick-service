@@ -2,6 +2,12 @@
 
 Standalone NestJS backend for the Sidekick support assistant used with CRM and ERP. The repository is intentionally independent of both application frontends; integration will happen through a documented API and a later frontend phase.
 
+## Product documents and diagrams
+
+- [Product Requirements Document](docs/Sidekick-PRD.md) — product scope, user journeys, requirements, acceptance criteria and delivery phases.
+- [Business Requirements Document](docs/Sidekick-BRD.md) — detailed business rules and workflows.
+- [Architecture and support flow diagram](docs/sidekick-architecture-flow.svg).
+
 ## Current status
 
 **Backend foundation and ticket persistence are underway.** NestJS configuration, health endpoints, ticket CRUD reads/creation/status transitions, and a PostgreSQL Prisma schema are present. Request lifecycle, verified identity integration, city/store authorization, RAG, service connectors, and call routing are still pending.
@@ -61,7 +67,3 @@ The service requires a reachable PostgreSQL database configured with `DATABASE_U
 - `PATCH /api/v1/requests/:id/status`
 
 Identity headers are currently a development placeholder; do not expose this service publicly until verified Identity Management authentication and authorization guards are implemented.
-
-## Local Git
-
-This directory is a standalone Git repository. A remote GitHub/GitLab repository must be configured separately if one is available.
